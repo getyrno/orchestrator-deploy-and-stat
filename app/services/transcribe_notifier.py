@@ -28,23 +28,15 @@ def _format_transcribe_message(ev: TranscribeEventIn) -> str:
     client = ev.client or "-"
     err_code = ev.error_code or "-"
     err_msg = ev.error_message or "-"
-
+    # 🤖 Model:   {model}
+    # 💻 Device:  {device}
+    # 🌐 Lang:    {lang}
+    # 🎥 File:   {filename} 
     text = f"""
-    {emoji} Transcribe { 'SUCCESS' if ev.success else 'FAILED' } [{settings.env_name}]
-
+    {emoji} { 'SUCCESS' if ev.success else 'FAILED' } [{settings.env_name}]
     👤 Client: {client}
-    🎥 File:   {filename}
-    📦 Size:   {size_mb}
-    ⏱️ Length: {duration}
-
-    🤖 Model:   {model}
-    💻 Device:  {device}
-    🌐 Lang:    {lang}
-
-    ⚙️ Latency:     {latency}
-       Whisper:     {t_ms}
-       FFmpeg:      {f_ms}
-
+    Size: {size_mb} Length: {duration}
+    ⚙️ Длительность: {latency} Whisper: {t_ms} FFmpeg: {f_ms}
     🧩 Error code: {err_code}
     🐞 Error msg:  {err_msg}
     """
