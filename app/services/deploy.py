@@ -46,7 +46,7 @@ def run_ssh_deploy() -> Dict[str, Any]:
         "-o",
         "StrictHostKeyChecking=no",
         f"{settings.home_ssh_user}@{settings.home_ssh_host}",
-        "wsl -d Ubuntu -- bash -lc 'cd ~/ml-service-voice-trans && git pull origin main && docker compose up -d --build'",
+        'wsl -d Ubuntu -- bash -lc "cd ~/ml-service-voice-trans && git pull origin main && docker compose up -d --build"',
     ]
     start = time.time()
     try:
