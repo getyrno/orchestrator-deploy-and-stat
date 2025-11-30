@@ -34,11 +34,11 @@ def _format_transcribe_message(ev: TranscribeEventIn) -> str:
     # 🎥 File:   {filename} 
     text = f"""
     {emoji} { 'SUCCESS' if ev.success else 'FAILED' } [{settings.env_name}]
+    - Size: {size_mb} Length: {duration}
+    - Длительность: {latency} Whisper: {t_ms} FFmpeg: {f_ms}
+    [x] Error code: {err_code}
+    [X] Error msg:  {err_msg}
     👤 Client: {client}
-    Size: {size_mb} Length: {duration}
-    ⚙️ Длительность: {latency} Whisper: {t_ms} FFmpeg: {f_ms}
-    🧩 Error code: {err_code}
-    🐞 Error msg:  {err_msg}
     """
     return textwrap.dedent(text).strip()
 
