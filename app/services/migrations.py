@@ -2,10 +2,28 @@
 from __future__ import annotations
 
 import datetime as dt
+import time
 from typing import List, Dict
 
 from app.services.db import get_conn
 
+def wait_for_db(max_attempts: int = 10, delay_sec: int = 3) -> None:
+    """
+    Ждём, пока Postgres станет доступен.
+    Пытаемся несколько раз сделать SELECT 1.
+    """
+    for attempt in range(1, max_attempts + 1):
+        try:
+            with get_conn() as conn:
+                with conn.cursor() as cur:
+                    cur.execute("SELECT 1;")
+                    _ = cur.fetchone()
+            print("[migrations] DB is ready")
+            return
+        except Exception as e:
+            print(f"[migrations] DB not ready (attempt {attempt}/{max_attempts}): {e}")
+            time.sleep(delay_sec)
+    raise RuntimeError("DB is not ready after retries")
 
 # Список миграций в порядке применения
 # version — уникальное имя (строка)
@@ -100,6 +118,9 @@ def apply_all_migrations() -> None:
     Главная точка входа: создаём таблицу миграций,
     смотрим, что уже применено, и докатываем всё новое.
     """
+    # ⬇⬇⬇ вот это добавили
+    wait_for_db()
+
     ensure_schema_migrations_table()
     applied = get_applied_versions()
 

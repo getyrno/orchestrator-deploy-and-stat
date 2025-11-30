@@ -21,10 +21,16 @@ from app.services.transcribe_notifier import send_transcribe_notification
 app = FastAPI(title="Deploy Orchestrator")
 
 
+import logging
+logger = logging.getLogger(__name__)
+
 @app.on_event("startup")
 def on_startup():
-    # Прогоняем миграции при старте
-    apply_all_migrations()
+    try:
+        apply_all_migrations()
+    except Exception as e:
+        # Не кладём весь сервис, просто логируем
+        logger.exception(f"apply_all_migrations failed: {e}")
 
 
 def verify_github_signature(body: bytes, signature_header: str | None) -> bool:

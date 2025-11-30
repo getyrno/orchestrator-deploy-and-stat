@@ -81,10 +81,11 @@ def send_deploy_notification(event: Dict[str, Any]) -> None:
         "text": text,        # 👈 БЕЗ parse_mode, чистый текст
         # "parse_mode": "MarkdownV2",  # если захочешь позже — включим с экранированием
     }
+    print(f"[telegram payload] send : {payload}")
 
     try:
         resp = requests.post(url, json=payload, timeout=5)
         if resp.status_code != 200:
-            print(f"[telegram] send failed: {resp.status_code} {resp.text}")
+            print(f"[telegram main] send failed: {resp.status_code} {resp.text}")
     except Exception as e:
-        print(f"[telegram] exception while sending: {e}")
+        print(f"[telegram main] exception while sending: {e}")
