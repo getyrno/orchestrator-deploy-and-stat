@@ -69,6 +69,16 @@ MIGRATIONS: List[Dict[str, str]] = [
             ON transcribe_events (language_detected);
         """
     },
+    {
+        "version": "0002_add_client_ip",
+        "sql": """
+        ALTER TABLE transcribe_events
+            ADD COLUMN client_ip text;
+
+        CREATE INDEX IF NOT EXISTS idx_transcribe_events_client_ip
+            ON transcribe_events (client_ip);
+        """
+    }
     # сюда потом добавим "0002_..." и т.д.
 ]
 

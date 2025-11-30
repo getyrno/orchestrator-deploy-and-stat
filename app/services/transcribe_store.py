@@ -26,6 +26,7 @@ def save_transcribe_event(ev: TranscribeEventIn) -> None:
                     created_at_utc,
                     env,
                     client,
+                    client_ip,
                     request_id,
                     video_id,
                     filename,
@@ -46,6 +47,7 @@ def save_transcribe_event(ev: TranscribeEventIn) -> None:
                     %(created_at_utc)s,
                     %(env)s,
                     %(client)s,
+                    %(client_ip)s,
                     %(request_id)s,
                     %(video_id)s,
                     %(filename)s,
@@ -67,7 +69,10 @@ def save_transcribe_event(ev: TranscribeEventIn) -> None:
                     "id": str(event_id),
                     "created_at_utc": now_utc,
                     "env": settings.env_name,
+
                     "client": ev.client,
+                    "client_ip": ev.client_ip,
+
                     "request_id": ev.request_id,
                     "video_id": ev.video_id,
                     "filename": ev.filename,

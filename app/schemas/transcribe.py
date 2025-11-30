@@ -14,7 +14,7 @@ class TranscribeEventIn(BaseModel):
     request_id: str = Field(..., description="UUID или любой уникальный ID запроса")
     video_id: Optional[str] = None
     client: Optional[str] = None  # например, 'friend-1' или 'internal-tests'
-
+    client_ip: Optional[str] = None
     # инфо о входном файле
     filename: Optional[str] = None
     filesize_bytes: Optional[int] = None

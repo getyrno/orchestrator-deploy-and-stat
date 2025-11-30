@@ -25,20 +25,25 @@ def _format_transcribe_message(ev: TranscribeEventIn) -> str:
     model = ev.model_name or "-"
     device = ev.model_device or "-"
 
-    client = ev.client or "-"
+    client_ip = ev.client_ip or "-"
     err_code = ev.error_code or "-"
     err_msg = ev.error_message or "-"
-    # 🤖 Model:   {model}
-    # 💻 Device:  {device}
-    # 🌐 Lang:    {lang}
-    # 🎥 File:   {filename} 
+
     text = f"""
     {emoji} { 'SUCCESS' if ev.success else 'FAILED' } [{settings.env_name}]
-    - Size: {size_mb} Length: {duration}
-    - Длительность: {latency} Whisper: {t_ms} FFmpeg: {f_ms}
-    [x] Error code: {err_code}
-    [X] Error msg:  {err_msg}
-    👤 Client: {client}
+    🌐 IP:     {client_ip}
+    🎥 File:   {filename}
+    💾 Size:   {size_mb} | ⏱ Length: {duration}
+
+    🕒 Total:  {latency} 
+    🔊 Whisper:{t_ms} 🎬 FFmpeg: {f_ms}
+
+    🔤 Lang:   {lang} 
+    🤖 Model:  {model}
+    💻 Device: {device}
+
+    ❌ Error code: {err_code}
+    📝 Error msg:  {err_msg}
     """
     return textwrap.dedent(text).strip()
 
