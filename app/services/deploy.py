@@ -11,6 +11,7 @@ import os
 import requests
 
 from app.core.config import settings
+from app.services.telegram_notifier import send_deploy_start_notification
 
 
 def now_utc_msk() -> tuple[str, str]:
@@ -154,7 +155,10 @@ def build_deploy_event(
 
 def do_deploy(payload: Dict[str, Any]) -> Dict[str, Any]:
     deploy_id = str(uuid.uuid4())
-
+    try:
+        send_deploy_start_notification(payload)
+    except Exception as e:
+        print(f"[deploy] failed to send start notification: {e}")
     ssh_info = run_ssh_deploy()
 
     stage: Optional[str] = None

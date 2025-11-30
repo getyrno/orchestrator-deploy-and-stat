@@ -6,6 +6,7 @@ import requests
 import textwrap
 
 from app.core.config import settings
+from datetime import datetime, timezone, timedelta
 
 
 def _format_deploy_message(event: Dict[str, Any]) -> str:
@@ -89,3 +90,40 @@ def send_deploy_notification(event: Dict[str, Any]) -> None:
             print(f"[telegram main] send failed: {resp.status_code} {resp.text}")
     except Exception as e:
         print(f"[telegram main] exception while sending: {e}")
+
+def send_deploy_start_notification(payload: Dict[str, Any]) -> None:
+    if not settings.telegram_enabled:
+        return
+
+    token = settings.telegram_bot_token
+    chat_id = settings.telegram_chat_id
+
+    repo = payload.get("repository", {}).get("full_name", "manual")
+    branch = payload.get("ref", "-")
+    actor = payload.get("pusher", {}).get("name", "-")
+
+    # 🇷🇺 MSK время с секундами
+    utc = datetime.now(timezone.utc)
+    msk = utc + timedelta(hours=3)
+    ts = msk.strftime("%Y-%m-%d %H:%M:%S")
+
+    text = (
+        "🚀 *Deploy started*\n"
+        f"🕒 Time MSK: `{ts}`\n"
+        f"📦 Repo: `{repo}`\n"
+        f"🌿 Branch: `{branch}`\n"
+        f"👤 Actor: `{actor}`\n"
+        "⏳ Ждём результат..."
+    )
+
+    url = f"https://api.telegram.org/bot{token}/sendMessage"
+    payload = {
+        "chat_id": chat_id,
+        "text": text,
+        "parse_mode": "Markdown"
+    }
+
+    try:
+        requests.post(url, json=payload, timeout=5)
+    except Exception as e:
+        print(f"[telegram start] exception: {e}")
