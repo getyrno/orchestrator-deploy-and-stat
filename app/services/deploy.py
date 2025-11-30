@@ -37,7 +37,7 @@ def run_ssh_deploy() -> Dict[str, Any]:
             "returncode": 0,
             "stdout": "[DRY_RUN] ssh deploy skipped, pretending success",
             "stderr": "",
-            "duration_ms": 300,
+            "duration_ms": 600,
         }
 
     ssh_cmd = [
