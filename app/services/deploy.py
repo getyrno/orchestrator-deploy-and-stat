@@ -54,7 +54,7 @@ def run_ssh_deploy() -> Dict[str, Any]:
             ssh_cmd,
             capture_output=True,
             text=True,
-            timeout=900,
+            timeout=300,
         )
         duration = int((time.time() - start) * 1000)
         return {
