@@ -78,10 +78,112 @@ MIGRATIONS: List[Dict[str, str]] = [
         CREATE INDEX IF NOT EXISTS idx_transcribe_events_client_ip
             ON transcribe_events (client_ip);
         """
-    }
-    # сюда потом добавим "0002_..." и т.д.
-]
+    },
+    {
+        "version": "0003_create_video_jobs_and_events",
+        "sql": """
+        -- enum для статусов джоб/этапов
+        DO $$
+        BEGIN
+            IF NOT EXISTS (
+                SELECT 1 FROM pg_type WHERE typname = 'video_job_status'
+            ) THEN
+                CREATE TYPE video_job_status AS ENUM (
+                    'STARTED', 'IN_PROGRESS', 'DONE', 'FAIL', 'TIMEOUT'
+                );
+            END IF;
+        END
+        $$;
 
+        -- основная таблица видео-джоб
+        CREATE TABLE IF NOT EXISTS video_jobs (
+            job_id              uuid PRIMARY KEY,
+
+            created_at_utc      timestamptz NOT NULL,
+            env                 text        NOT NULL,
+
+            status              video_job_status NOT NULL,
+
+            -- базовая мета по запросу (на будущее)
+            source              text,
+            request_id          text,
+            user_id             text,
+            client_ip           text,
+
+            -- gpu / модель (на будущее)
+            gpu_host            text,
+            gpu_service_version text,
+            model_name          text,
+            model_version       text,
+
+            -- видео-мета (на будущее)
+            video_source_type   text,
+            video_original_name text,
+            video_original_ext  text,
+            video_mime          text,
+            video_size_bytes    bigint,
+            video_duration_sec  numeric(10,3),
+            video_width         int,
+            video_height        int,
+            video_fps           numeric(10,3),
+            video_video_codec   text,
+            video_audio_codec   text,
+
+            -- агрегированные тайминги (на будущее)
+            started_at_utc      timestamptz,
+            finished_at_utc     timestamptz,
+            duration_total_ms   int,
+            duration_convert_ms int,
+            duration_inference_ms int,
+
+            -- результат (на будущее)
+            result_lang         text,
+            result_segments     int,
+            result_text_len     int,
+            result_preview      text,
+            result_storage_id   text,
+
+            -- ошибки (на будущее)
+            error_code          text,
+            error_message       text,
+            error_raw           jsonb
+        );
+
+        -- таблица событий по этапам пайплайна
+        CREATE TABLE IF NOT EXISTS video_job_events (
+            id                  bigserial PRIMARY KEY,
+            job_id              uuid NOT NULL REFERENCES video_jobs(job_id) ON DELETE CASCADE,
+
+            created_at_utc      timestamptz NOT NULL,
+            env                 text        NOT NULL,
+
+            origin              text        NOT NULL,  -- gpu / orchestrator / ...
+            step_code           text        NOT NULL,  -- REQUEST_RECEIVED / FFMPEG_CONVERT / ...
+
+            status              video_job_status NOT NULL,
+
+            step_started_at_utc timestamptz,
+            step_finished_at_utc timestamptz,
+            step_duration_ms    int,
+
+            message             text,
+            data                jsonb
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_video_job_events_job_id_created
+            ON video_job_events (job_id, created_at_utc);
+
+        CREATE INDEX IF NOT EXISTS idx_video_job_events_step_code
+            ON video_job_events (step_code);
+
+        CREATE INDEX IF NOT EXISTS idx_video_jobs_created_at
+            ON video_jobs (created_at_utc);
+
+        CREATE INDEX IF NOT EXISTS idx_video_jobs_status
+            ON video_jobs (status);
+        """
+    }
+]
 
 def ensure_schema_migrations_table() -> None:
     """

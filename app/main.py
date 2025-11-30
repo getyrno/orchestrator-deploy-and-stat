@@ -7,6 +7,7 @@ import json
 from typing import Any, Dict
 
 from fastapi import BackgroundTasks, FastAPI, HTTPException, Request
+from app.schemas.video_jobs import VideoJobEventIn
 from app.services.deploy import do_deploy
 from app.services.log_store import get_latest_event, log_event
 from app.services.telegram_notifier import send_deploy_notification  # 👈 вот это
@@ -18,6 +19,8 @@ from app.services.migrations import apply_all_migrations
 from app.schemas.transcribe import TranscribeEventIn
 from app.services.transcribe_store import save_transcribe_event
 from app.services.transcribe_notifier import send_transcribe_notification
+from app.services.video_job.video_job_notifier import send_video_job_notification
+from app.services.video_job.video_jobs_store import save_video_job_event
 app = FastAPI(title="Deploy Orchestrator")
 
 
@@ -115,6 +118,25 @@ async def collect_transcribe_event(
     def task():
         save_transcribe_event(ev)
         send_transcribe_notification(ev)
+
+    background_tasks.add_task(task)
+    return {"status": "ok"}
+
+@app.post("/events/transcribe/job")
+async def push_video_job_event(
+    ev: VideoJobEventIn,
+    background_tasks: BackgroundTasks,
+):
+    """
+    ML-сервис шлёт сюда события по видео-джобам (этапы пайплайна).
+    Мы:
+      1) складываем событие и job в Postgres
+      2) шлём телеграм-уведомление для финальных статусов (DONE/FAIL/TIMEOUT)
+    """
+
+    def task():
+        save_video_job_event(ev)
+        send_video_job_notification(ev)
 
     background_tasks.add_task(task)
     return {"status": "ok"}
