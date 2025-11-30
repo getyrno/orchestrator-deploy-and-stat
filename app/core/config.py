@@ -41,7 +41,7 @@ class Settings(BaseSettings):
     )
 
     # --- Postgres ---
-    db_host: str = Field("db", alias="POSTGRES_HOST")
+    db_host: str = Field("orchestrator-db", alias="POSTGRES_HOST")
     db_port: int = Field(5432, alias="POSTGRES_PORT")
     db_name: str = Field("orch", alias="POSTGRES_DB")
     db_user: str = Field("orch", alias="POSTGRES_USER")
