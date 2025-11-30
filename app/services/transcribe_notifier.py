@@ -65,7 +65,7 @@ def send_transcribe_notification(ev: TranscribeEventIn) -> None:
     payload: dict[str, Any] = {
         "chat_id": chat_id,
         "text": text,
-        "parse_mode": "Markdown",
+        # "parse_mode": "Markdown",
     }
 
     try:
