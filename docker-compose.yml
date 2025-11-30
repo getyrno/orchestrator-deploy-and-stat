@@ -1,0 +1,20 @@
+# docker-compose.yml
+services:
+  orchestrator:
+    build: .
+    container_name: deploy-orchestrator
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+    environment:
+      GITHUB_WEBHOOK_SECRET: "PUT_WEBHOOK_SECRET_HERE"
+      GITHUB_REPO: "getyrno/ml-service-voice-trans"
+      HOME_SSH_USER: "getyrno"
+      HOME_SSH_HOST: "10.8.0.2"
+      HOME_SSH_KEY_PATH: "/keys/id_ed25519"
+      HEALTHCHECK_URL: "http://10.8.0.2:8000/docs"
+      DEPLOY_LOG_PATH: "/data/deploy_log.jsonl"
+      VDS_HOSTNAME: "Ambitious-Erinome"
+    volumes:
+      - /root/.ssh/id_ed25519:/keys/id_ed25519:ro
+      - ./data:/data
