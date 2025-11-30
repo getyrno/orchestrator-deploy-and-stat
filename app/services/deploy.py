@@ -42,13 +42,12 @@ def run_ssh_deploy() -> Dict[str, Any]:
 
     ssh_cmd = [
         "ssh",
-        "-i",
-        settings.home_ssh_key_path,
-        "-o",
-        "StrictHostKeyChecking=no",
+        "-i", settings.home_ssh_key_path,
+        "-o", "StrictHostKeyChecking=no",
         f"{settings.home_ssh_user}@{settings.home_ssh_host}",
-        'wsl -d Ubuntu -- bash -lc "cd ~/ml-service-voice-trans && git pull origin main && docker compose up -d --build"',
+        'wsl.exe -d Ubuntu -- /usr/bin/env bash -c "cd ~/ml-service-voice-trans && git pull origin main && docker compose up -d --build"',
     ]
+
     start = time.time()
     try:
         proc = subprocess.run(
@@ -155,28 +154,71 @@ def build_deploy_event(
 
 def do_deploy(payload: Dict[str, Any]) -> Dict[str, Any]:
     deploy_id = str(uuid.uuid4())
+    stages = []
+
+    # 1) START
+    push_stage(stages, "deploy_start")
     try:
         send_deploy_start_notification(payload)
+        push_stage(stages, "telegram_start", "ok")
     except Exception as e:
-        print(f"[deploy] failed to send start notification: {e}")
+        push_stage(stages, "telegram_start", "failed", str(e))
+
+    # 2) SSH deploy
+    push_stage(stages, "ssh_deploy")
     ssh_info = run_ssh_deploy()
-
-    stage: Optional[str] = None
-    error_message: Optional[str] = None
-
     if ssh_info.get("returncode") != 0:
+        push_stage(stages, "ssh_deploy", "failed", ssh_info.get("stderr"))
         result = "failed"
         stage = "ssh"
         error_message = ssh_info.get("stderr")
         hc_info = {"status_code": 0, "duration_ms": 0, "error": None}
     else:
+        push_stage(stages, "ssh_deploy", "ok")
+
+        # 3) Healthcheck
+        push_stage(stages, "healthcheck")
         hc_info = run_healthcheck()
+
         if hc_info.get("status_code") == 200:
+            push_stage(stages, "healthcheck", "ok")
             result = "success"
+            stage = None
+            error_message = None
         else:
+            push_stage(stages, "healthcheck", "failed", hc_info.get("error"))
             result = "failed"
             stage = "healthcheck"
             error_message = hc_info.get("error") or f"status_code={hc_info.get('status_code')}"
 
-    event = build_deploy_event(payload, deploy_id, result, stage, error_message, ssh_info, hc_info)
+    # 4) END
+    push_stage(stages, "deploy_end", "ok" if result == "success" else "failed")
+
+    # 5) собираем полное событие
+    event = build_deploy_event(
+        payload=payload,
+        deploy_id=deploy_id,
+        result=result,
+        stage=stage,
+        error_message=error_message,
+        ssh_info=ssh_info,
+        hc_info=hc_info,
+    )
+
+    # 👇 добавляем этапы в event
+    event["stages"] = stages
+
     return event
+
+
+def push_stage(stages: list[dict], name: str, status: str = "start", info: str = None):
+    utc = dt.datetime.now(dt.timezone.utc)
+    msk = utc + dt.timedelta(hours=3)
+
+    stages.append({
+        "stage": name,
+        "status": status,   # start | ok | failed
+        "info": info,
+        "utc": utc.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "msk": msk.strftime("%Y-%m-%d %H:%M:%S"),
+    })
