@@ -111,16 +111,16 @@ def apply_all_migrations() -> None:
         apply_migration(v, mig["sql"])
         print(f"[migrations] {v} done")
 
-MIGRATIONS: List[Dict[str, str]] = [
-    {
-        "version": "0001_create_transcribe_events",
-        "sql": """ ... """
-    },
-    {
-        "version": "0002_add_client_version",
-        "sql": """
-        ALTER TABLE transcribe_events
-            ADD COLUMN client_version text;
-        """
-    },
-]
+# MIGRATIONS: List[Dict[str, str]] = [
+#     {
+#         "version": "0001_create_transcribe_events",
+#         "sql": """ ... """
+#     },
+#     {
+#         "version": "0002_add_client_version",
+#         "sql": """
+#         ALTER TABLE transcribe_events
+#             ADD COLUMN client_version text;
+#         """
+#     },
+# ]

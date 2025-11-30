@@ -9,8 +9,8 @@ from app.core.config import settings
 
 
 def _format_deploy_message(event: Dict[str, Any]) -> str:
-    status = event.get("status", {})
-    result = status.get("result")
+    status = event.get("status", {}) or {}
+    result = status.get("result") or "unknown"
     is_ok = result == "success"
 
     emoji = "✅" if is_ok else "❌"
@@ -49,7 +49,8 @@ def _format_deploy_message(event: Dict[str, Any]) -> str:
     🕒 Time MSK: {msk}
 
     🖥 VDS host:  {event.get("targets", {}).get("vds", {}).get("host", "-")}
-    🏠 Home PC:   {event.get("targets", {}).get("home_pc", {}).get("vpn_ip", "-")} ({event.get("targets", {}).get("home_pc", {}).get("ssh_user", "-")})
+    🏠 Home PC:   {event.get("targets", {}).get("home_pc", {}).get("vpn_ip", "-")}
+                  (user: {event.get("targets", {}).get("home_pc", {}).get("ssh_user", "-")})
 
     🔌 SSH: rc={ssh_rc}, ~{ssh_ms} ms
     ❤️ Healthcheck: {hc_url}
@@ -58,7 +59,6 @@ def _format_deploy_message(event: Dict[str, Any]) -> str:
     🧩 Failed stage: {failed_stage}
     🐞 Error: {err}
     """
-    # убираем общий отступ
     return textwrap.dedent(text).strip()
 
 
@@ -78,15 +78,13 @@ def send_deploy_notification(event: Dict[str, Any]) -> None:
     url = f"https://api.telegram.org/bot{token}/sendMessage"
     payload = {
         "chat_id": chat_id,
-        "text": text,
-        "parse_mode": "Markdown",  # по сути у нас обычный текст, но ок
+        "text": text,        # 👈 БЕЗ parse_mode, чистый текст
+        # "parse_mode": "MarkdownV2",  # если захочешь позже — включим с экранированием
     }
 
     try:
         resp = requests.post(url, json=payload, timeout=5)
-        # можем логировать ошибки, но оркестратор из-за этого падать не должен
         if resp.status_code != 200:
-            # на будущее можно писать в лог-файл
             print(f"[telegram] send failed: {resp.status_code} {resp.text}")
     except Exception as e:
         print(f"[telegram] exception while sending: {e}")
