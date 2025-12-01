@@ -51,11 +51,10 @@ def run_ssh_deploy() -> Dict[str, Any]:
             '&& git pull origin main '
             '&& docker stop ml-service-voice-trans 2>/dev/null || true '
             '&& docker rm ml-service-voice-trans 2>/dev/null || true '
-            '&& docker compose down || true '
-            '&& docker image prune -f '
-            '&& docker builder prune -f '
-            '&& docker compose up -d --build"'
-        ),
+            '&& docker build -t ml-service-voice-trans . '
+            '&& docker run -d --gpus all -p 8000:8000 '
+            '--name ml-service-voice-trans ml-service-voice-trans"'
+        )
     ]
 
 
