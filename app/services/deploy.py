@@ -45,9 +45,16 @@ def run_ssh_deploy() -> Dict[str, Any]:
         "-i", settings.home_ssh_key_path,
         "-o", "StrictHostKeyChecking=no",
         f"{settings.home_ssh_user}@{settings.home_ssh_host}",
-        'wsl.exe -d Ubuntu -- /usr/bin/env bash -c "cd ~/ml-service-voice-trans && git pull origin main && docker stop ml-service-voice-trans 2>/dev/null || true && docker rm ml-service-voice-trans 2>/dev/null || true && docker build -t ml-service-voice-trans . && docker run -d --gpus all -p 8000:8000 --restart always --name ml-service-voice-trans ml-service-voice-trans"',
+        (
+            'wsl.exe -d Ubuntu -- /usr/bin/env bash -lc '
+            '"cd ~/ml-service-voice-trans '
+            '&& git pull origin main '
+            '&& docker compose down || true '
+            '&& docker image prune -f '
+            '&& docker builder prune -f '
+            '&& docker compose up -d --build"'
+        ),
     ]
-
 
     start = time.time()
     try:
