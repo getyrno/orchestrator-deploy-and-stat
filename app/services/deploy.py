@@ -49,12 +49,15 @@ def run_ssh_deploy() -> Dict[str, Any]:
             'wsl.exe -d Ubuntu -- /usr/bin/env bash -lc '
             '"cd ~/ml-service-voice-trans '
             '&& git pull origin main '
+            '&& docker stop ml-service-voice-trans 2>/dev/null || true '
+            '&& docker rm ml-service-voice-trans 2>/dev/null || true '
             '&& docker compose down || true '
             '&& docker image prune -f '
             '&& docker builder prune -f '
             '&& docker compose up -d --build"'
         ),
     ]
+
 
     start = time.time()
     try:
