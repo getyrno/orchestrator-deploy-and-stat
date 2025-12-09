@@ -32,7 +32,6 @@ def on_startup():
     try:
         apply_all_migrations()
     except Exception as e:
-        # Не кладём весь сервис, просто логируем
         logger.exception(f"apply_all_migrations failed: {e}")
 
 
