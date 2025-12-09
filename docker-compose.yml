@@ -1,5 +1,18 @@
 # docker-compose.yml
 services:
+  db:
+    image: postgres:15-alpine
+    container_name: orchestrator-db
+    restart: always
+    environment:
+      POSTGRES_DB: orch
+      POSTGRES_USER: orch
+      POSTGRES_PASSWORD: orchpass
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
   orchestrator:
     build: .
     container_name: deploy-orchestrator
@@ -16,5 +29,8 @@ services:
       DEPLOY_LOG_PATH: "/data/deploy_log.jsonl"
       VDS_HOSTNAME: "Ambitious-Erinome"
     volumes:
-      - /root/.ssh/id_ed25519:/keys/id_ed25519:ro
+      # - /root/.ssh/id_ed25519:/keys/id_ed25519:ro
       - ./data:/data
+
+volumes:
+  db_data:

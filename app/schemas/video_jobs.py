@@ -9,6 +9,7 @@ from pydantic import BaseModel
 
 
 class VideoJobStatus(str, Enum):
+    QUEUED = "QUEUED"
     STARTED = "STARTED"
     IN_PROGRESS = "IN_PROGRESS"
     DONE = "DONE"

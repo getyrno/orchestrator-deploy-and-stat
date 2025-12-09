@@ -182,6 +182,10 @@ MIGRATIONS: List[Dict[str, str]] = [
         CREATE INDEX IF NOT EXISTS idx_video_jobs_status
             ON video_jobs (status);
         """
+    },
+    {
+        "version": "0004_add_queued_status",
+        "sql": "ALTER TYPE video_job_status ADD VALUE IF NOT EXISTS 'QUEUED' BEFORE 'STARTED';"
     }
 ]
 
@@ -244,16 +248,3 @@ def apply_all_migrations() -> None:
         apply_migration(v, mig["sql"])
         print(f"[migrations] {v} done")
 
-# MIGRATIONS: List[Dict[str, str]] = [
-#     {
-#         "version": "0001_create_transcribe_events",
-#         "sql": """ ... """
-#     },
-#     {
-#         "version": "0002_add_client_version",
-#         "sql": """
-#         ALTER TABLE transcribe_events
-#             ADD COLUMN client_version text;
-#         """
-#     },
-# ]

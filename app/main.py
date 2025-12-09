@@ -21,7 +21,10 @@ from app.services.transcribe_store import save_transcribe_event
 from app.services.transcribe_notifier import send_transcribe_notification
 from app.services.video_job.video_job_notifier import send_video_job_notification
 from app.services.video_job.video_jobs_store import save_video_job_event
+from app.api.jobs import router as jobs_router
+
 app = FastAPI(title="Deploy Orchestrator")
+app.include_router(jobs_router)
 
 
 import logging
