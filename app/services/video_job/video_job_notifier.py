@@ -81,7 +81,6 @@ def send_video_job_notification(ev: VideoJobEventIn) -> None:
     DONE / FAIL / TIMEOUT.
     Используем те же настройки, что и для transcribe-бота.
     """
-    # если нотификации в принципе отключены — выходим
     if not settings.transcribe_telegram_enabled:
         return
 
