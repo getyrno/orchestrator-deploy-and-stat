@@ -43,8 +43,6 @@ def run_ssh_deploy() -> Dict[str, Any]:
     remote_cmd = (
         'wsl.exe -d Ubuntu -- /usr/bin/env bash -lc '
         '"set -xe; '                               # x - лог команд, e - падать по первой ошибке
-        'echo USER=$(whoami); '
-        'echo PWD=$(pwd); '
         'cd /home/getyrno/ml-service-voice-trans '  # ⚠️ ЯВНЫЙ ПУТЬ
         '&& git fetch origin main '
         '&& git reset --hard origin/main '
