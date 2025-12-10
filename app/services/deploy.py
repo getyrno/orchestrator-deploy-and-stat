@@ -30,7 +30,6 @@ def run_ssh_deploy() -> Dict[str, Any]:
     returncode, stdout, stderr, duration_ms
     """
 
-    # DRY-RUN режим: не делаем реальный ssh, просто "удачный" ответ
     if os.getenv("DRY_RUN_DEPLOY") == "1":
         time.sleep(0.3)
         return {
@@ -40,16 +39,13 @@ def run_ssh_deploy() -> Dict[str, Any]:
             "duration_ms": 600,
         }
 
-    # Скрипт, который выполняется на домашнем ПК
-    # 1) Входим в WSL (Ubuntu)
-    # 2) Переходим в репозиторий
-    # 3) Обновляем код до origin/main
-    # 4) Останавливаем старый compose-стек (api + redis)
-    # 5) Чистим docker-мусор (образы, сети, тома, кеши, неиспользуемое)
-    # 6) Поднимаем новый стек через docker compose up -d --build
+    # 👇 ТУТ ОСНОВНОЕ ИЗМЕНЕНИЕ: явный путь /home/getyrno/... и немного дебага
     remote_cmd = (
         'wsl.exe -d Ubuntu -- /usr/bin/env bash -lc '
-        '"cd ~/ml-service-voice-trans '
+        '"set -xe; '                               # x - лог команд, e - падать по первой ошибке
+        'echo USER=$(whoami); '
+        'echo PWD=$(pwd); '
+        'cd /home/getyrno/ml-service-voice-trans '  # ⚠️ ЯВНЫЙ ПУТЬ
         '&& git fetch origin main '
         '&& git reset --hard origin/main '
         '&& (docker compose down --remove-orphans || true) '
