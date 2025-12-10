@@ -40,6 +40,14 @@ class Settings(BaseSettings):
         None, alias="TRANSCRIBE_TELEGRAM_CHAT_ID"
     )
 
+    all_eat_bot_token: str | None = Field(
+        default=None,
+        env="OUR_ALL_EAT_TELEGRAM_BOT_TOKEN",
+    )
+    all_eat_chat_id: str | None = Field(
+        default=None,
+        env="OUR_ALL_EAT_TELEGRAM_CHAT_ID",
+    )
     # --- Postgres ---
     db_host: str = Field("orchestrator-db", alias="POSTGRES_HOST")
     db_port: int = Field(5432, alias="POSTGRES_PORT")
