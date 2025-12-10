@@ -23,6 +23,16 @@ def now_utc_msk() -> tuple[str, str]:
     )
 
 
+import datetime as dt
+import subprocess
+import time
+import uuid
+from typing import Any, Dict, Optional
+import os
+import shlex  # 👈 добавь это
+
+import requests
+...
 def run_ssh_deploy() -> Dict[str, Any]:
     """
     Запуск деплоя на домашний ПК через SSH.
@@ -39,16 +49,31 @@ def run_ssh_deploy() -> Dict[str, Any]:
             "duration_ms": 600,
         }
 
-    # 👇 ТУТ ОСНОВНОЕ ИЗМЕНЕНИЕ: явный путь /home/getyrno/... и немного дебага
+    # Многострочный bash-скрипт, который отработает внутри WSL
+    remote_script = r"""
+set -xe
+
+echo '=== DEPLOY START ==='
+echo "USER=$(whoami)"
+echo "PWD=$(pwd)"
+
+cd /home/getyrno/ml-service-voice-trans
+
+git fetch origin main
+git reset --hard origin/main
+
+docker compose down --remove-orphans || true
+docker system prune -af --volumes
+
+docker compose up -d --build
+
+echo '=== DEPLOY END ==='
+"""
+
+    # Заворачиваем скрипт в одну безопасную строку для bash -lc '...'
     remote_cmd = (
-        'wsl.exe -d Ubuntu -- /usr/bin/env bash -lc '
-        '"set -xe; '                               # x - лог команд, e - падать по первой ошибке
-        'cd /home/getyrno/ml-service-voice-trans '  # ⚠️ ЯВНЫЙ ПУТЬ
-        '&& git fetch origin main '
-        '&& git reset --hard origin/main '
-        '&& (docker compose down --remove-orphans || true) '
-        '&& docker system prune -af --volumes '
-        '&& docker compose up -d --build"'
+        "wsl.exe -d Ubuntu -- /usr/bin/env bash -lc "
+        + shlex.quote(remote_script)
     )
 
     ssh_cmd = [
@@ -70,6 +95,13 @@ def run_ssh_deploy() -> Dict[str, Any]:
             timeout=1800,
         )
         duration = int((time.time() - start) * 1000)
+
+        # 👇 можно оставить, если хочешь видеть этот лог в консоли сервера
+        # print("SSH CMD:", " ".join(ssh_cmd))
+        # print("SSH RC:", proc.returncode)
+        # print("SSH STDOUT:\n", proc.stdout)
+        # print("SSH STDERR:\n", proc.stderr)
+
         return {
             "returncode": proc.returncode,
             "stdout": proc.stdout,
