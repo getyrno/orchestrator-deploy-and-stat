@@ -7,20 +7,22 @@ import json
 from typing import Any, Dict
 
 from fastapi import BackgroundTasks, FastAPI, HTTPException, Request
+from app.schemas.model_stat import ModelStatEvent
 from app.schemas.video_jobs import VideoJobEventIn
-from app.services.deploy import do_deploy
-from app.services.log_store import get_latest_event, log_event
-from app.services.telegram_notifier import send_deploy_notification  # 👈 вот это
-
+from app.schemas.transcribe import TranscribeEventIn
 from app.core.config import settings
 from app.services.deploy import do_deploy
+from app.services.deploy import do_deploy
+from app.services.log_store import get_latest_event, log_event
 from app.services.log_store import get_latest_event, log_event
 from app.services.db.migrations import apply_all_migrations
-from app.schemas.transcribe import TranscribeEventIn
 from app.services.transcribe_store import save_transcribe_event
-from app.services.transcribe_notifier import send_transcribe_notification
 from app.services.video_job.video_job_notifier import send_video_job_notification
 from app.services.video_job.video_jobs_store import save_video_job_event
+from app.services.notifier.model_stat_notifier import send_model_stat_notification
+from app.services.notifier.transcribe_notifier import send_transcribe_notification
+from app.services.notifier.telegram_notifier import send_deploy_notification  # 👈 вот это
+
 app = FastAPI(title="Deploy Orchestrator")
 
 
@@ -137,6 +139,30 @@ async def push_video_job_event(
     def task():
         save_video_job_event(ev)
         send_video_job_notification(ev)
+
+    background_tasks.add_task(task)
+    return {"status": "ok"}
+
+
+@app.post("/trigger/model_stat")
+async def handle_model_stat(
+    ev: ModelStatEvent,
+    background_tasks: BackgroundTasks,
+):
+    """
+    ML-сервис шлёт сюда результаты бенчмарка моделей.
+
+    Мы:
+      - ничего не храним (пока),
+      - в фоне шлём нотификацию в all-eat бота.
+    """
+
+    def task():
+        try:
+            send_model_stat_notification(ev)
+        except Exception:
+            # На всякий случай, чтобы вообще НИЧЕГО не положило процесс.
+            logger.exception("handle_model_stat: failed to send model_stat notification")
 
     background_tasks.add_task(task)
     return {"status": "ok"}
