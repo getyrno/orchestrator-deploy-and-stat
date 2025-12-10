@@ -11,7 +11,7 @@ import os
 import requests
 
 from app.core.config import settings
-from app.services.telegram_notifier import send_deploy_start_notification
+from app.services.notifier.telegram_notifier import send_deploy_start_notification
 
 
 def now_utc_msk() -> tuple[str, str]:
