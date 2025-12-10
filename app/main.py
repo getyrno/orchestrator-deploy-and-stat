@@ -15,7 +15,7 @@ from app.services.telegram_notifier import send_deploy_notification  # 👈 во
 from app.core.config import settings
 from app.services.deploy import do_deploy
 from app.services.log_store import get_latest_event, log_event
-from app.services.migrations import apply_all_migrations
+from app.services.db.migrations import apply_all_migrations
 from app.schemas.transcribe import TranscribeEventIn
 from app.services.transcribe_store import save_transcribe_event
 from app.services.transcribe_notifier import send_transcribe_notification

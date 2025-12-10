@@ -5,7 +5,7 @@ import datetime as dt
 import uuid
 
 from app.core.config import settings
-from app.services.db import get_conn
+from app.services.db.db import get_conn
 from app.schemas.transcribe import TranscribeEventIn
 
 

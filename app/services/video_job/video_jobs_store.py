@@ -5,7 +5,7 @@ import json
 
 from app.core.config import settings
 from app.schemas.video_jobs import VideoJobEventIn
-from app.services.db import get_conn
+from app.services.db.db import get_conn
 
 
 def save_video_job_event(ev: VideoJobEventIn) -> None:

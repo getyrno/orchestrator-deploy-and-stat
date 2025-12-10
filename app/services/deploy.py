@@ -40,23 +40,32 @@ def run_ssh_deploy() -> Dict[str, Any]:
             "duration_ms": 600,
         }
 
+    # Скрипт, который выполняется на домашнем ПК
+    # 1) Входим в WSL (Ubuntu)
+    # 2) Переходим в репозиторий
+    # 3) Обновляем код до origin/main
+    # 4) Останавливаем старый compose-стек (api + redis)
+    # 5) Чистим docker-мусор (образы, сети, тома, кеши, неиспользуемое)
+    # 6) Поднимаем новый стек через docker compose up -d --build
+    remote_cmd = (
+        'wsl.exe -d Ubuntu -- /usr/bin/env bash -lc '
+        '"cd ~/ml-service-voice-trans '
+        '&& git fetch origin main '
+        '&& git reset --hard origin/main '
+        '&& (docker compose down --remove-orphans || true) '
+        '&& docker system prune -af --volumes '
+        '&& docker compose up -d --build"'
+    )
+
     ssh_cmd = [
         "ssh",
-        "-i", settings.home_ssh_key_path,
-        "-o", "StrictHostKeyChecking=no",
+        "-i",
+        settings.home_ssh_key_path,
+        "-o",
+        "StrictHostKeyChecking=no",
         f"{settings.home_ssh_user}@{settings.home_ssh_host}",
-        (
-            'wsl.exe -d Ubuntu -- /usr/bin/env bash -lc '
-            '"cd ~/ml-service-voice-trans '
-            '&& git pull origin main '
-            '&& docker stop ml-service-voice-trans 2>/dev/null || true '
-            '&& docker rm ml-service-voice-trans 2>/dev/null || true '
-            '&& docker build -t ml-service-voice-trans . '
-            '&& docker run -d --gpus all -p 8000:8000 '
-            '--name ml-service-voice-trans ml-service-voice-trans"'
-        )
+        remote_cmd,
     ]
-
 
     start = time.time()
     try:
@@ -81,7 +90,6 @@ def run_ssh_deploy() -> Dict[str, Any]:
             "stderr": str(e),
             "duration_ms": duration,
         }
-
 
 def run_healthcheck() -> Dict[str, Any]:
     """

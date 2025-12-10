@@ -5,7 +5,7 @@ import datetime as dt
 import time
 from typing import List, Dict
 
-from app.services.db import get_conn
+from app.services.db.db import get_conn
 
 def wait_for_db(max_attempts: int = 10, delay_sec: int = 3) -> None:
     """
