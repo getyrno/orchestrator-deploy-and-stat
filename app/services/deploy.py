@@ -29,7 +29,6 @@ import time
 import uuid
 from typing import Any, Dict, Optional
 import os
-import shlex  # 👈 добавь это
 
 import requests
 ...
@@ -49,31 +48,18 @@ def run_ssh_deploy() -> Dict[str, Any]:
             "duration_ms": 600,
         }
 
-    # Многострочный bash-скрипт, который отработает внутри WSL
-    remote_script = r"""
-set -xe
-
-echo '=== DEPLOY START ==='
-echo "USER=$(whoami)"
-echo "PWD=$(pwd)"
-
-cd /home/getyrno/ml-service-voice-trans
-
-git fetch origin main
-git reset --hard origin/main
-
-docker compose down --remove-orphans || true
-docker system prune -af --volumes
-
-docker compose up -d --build
-
-echo '=== DEPLOY END ==='
-"""
-
     # Заворачиваем скрипт в одну безопасную строку для bash -lc '...'
     remote_cmd = (
-        "wsl.exe -d Ubuntu -- /usr/bin/env bash -lc "
-        + shlex.quote(remote_script)
+        'wsl.exe -d Ubuntu -- /usr/bin/env bash -lc '
+        '"set -xe; '
+        'echo DEPLOY_START; '
+        'cd /home/getyrno/ml-service-voice-trans; '
+        'git fetch origin main; '
+        'git reset --hard origin/main; '
+        '(docker compose down --remove-orphans || true); '
+        'docker system prune -af --volumes; '
+        'docker compose up -d --build; '
+        'echo DEPLOY_END"'
     )
 
     ssh_cmd = [
