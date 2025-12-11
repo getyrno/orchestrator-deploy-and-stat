@@ -6,3 +6,5 @@ python-dotenv
 psycopg[binary]
 pydantic_settings
 matplotlib
+alembic
+sqlalchemy

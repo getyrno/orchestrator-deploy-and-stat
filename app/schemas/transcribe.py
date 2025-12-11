@@ -9,7 +9,9 @@ class TranscribeEventIn(BaseModel):
     """
     Событие, которое шлёт ML-сервис после транскрибации одного видео.
     """
-
+    model_config = {
+        "protected_namespaces": ()
+    }
     # идентификаторы
     request_id: str = Field(..., description="UUID или любой уникальный ID запроса")
     video_id: Optional[str] = None

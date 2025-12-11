@@ -21,7 +21,9 @@ class VideoJobEventIn(BaseModel):
     Событие от ML-сервиса про этап обработки одного видео.
     Этого достаточно, чтобы сложить всё в БД.
     """
-
+    model_config = {
+            "protected_namespaces": ()
+        }
     # обязательное
     job_id: UUID
     step_code: str             # REQUEST_RECEIVED / FFMPEG_CONVERT / MODEL_INFERENCE / ...
